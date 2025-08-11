@@ -22,7 +22,37 @@ app.config.suppress_callback_exceptions = True
 # Load data from csv
 def load_data():
     # To do: Completar la función 
-    
+    df = pd.read_csv(
+        "datos_energia.csv",
+        parse_dates=["time"],   # convierte 'time' a datetime
+        dayfirst=False,         # el CSV viene en formato ISO (YYYY-MM-DD)
+    )
+
+    # Elimina filas con fecha inválida (por si acaso)
+    df = df.dropna(subset=["time"])
+
+    # Establece índice y ordena
+    df = df.set_index("time").sort_index()
+
+    # Si el índice tuviera zona horaria, normaliza a naive
+    try:
+        if getattr(df.index, "tz", None) is not None:
+            df.index = df.index.tz_convert(None)
+    except Exception:
+        pass
+
+    # Validación mínima de columnas esperadas para el gráfico
+    expected = {
+        "AT_load_actual_entsoe_transparency",
+        "forecast",
+        "Upper bound",
+        "Lower bound",
+    }
+    missing = expected - set(df.columns)
+    if missing:
+        raise ValueError(f"Faltan columnas en el CSV: {missing}")
+
+    return df
 
 # Cargar datos
 data = load_data()
@@ -240,4 +270,4 @@ def update_output_div(date, hour, proy):
 
 # Run the server
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=True)

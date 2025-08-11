@@ -270,4 +270,5 @@ def update_output_div(date, hour, proy):
 
 # Run the server
 if __name__ == "__main__":
+    #Be aware that it is not app.run_server
     app.run(debug=True)
